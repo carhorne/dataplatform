@@ -1,0 +1,68 @@
+version: 2
+
+models:
+  - name: stg_web_analytics
+    description: >
+      Each row represents a single cleaned and validated clickstream event from
+      the Adventure Works e-commerce site. Grain: one row per event. Built from
+      the raw_ext.web_analytics_raw source table, with type casting, timestamp
+      normalization, null filtering on required fields, and exact duplicate removal.
+      Join to stg_adventure_db__customers on customer_id to enrich events with
+      customer attributes. Used downstream by int_web_analytics_with_customers.
+    columns:
+      - name: customer_id
+        description: >
+          Adventure Works customer identifier. Foreign key to
+          stg_adventure_db__customers.customer_id. Rows with null customer_id
+          are dropped during staging. Values outside the expected range
+          (11000–30118) are kept but will not match the customer dimension.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_adventure_db__customers')
+                field: customer_id
+              config:
+                severity: warn
+      - name: product_id
+        description: >
+          Adventure Works product identifier, range 707–999. Foreign key to
+          stg_adventure_db__products.product_id. Represents the product the
+          customer was viewing or interacting with during this event.
+        data_tests:
+          - not_null
+      - name: session_id
+        description: >
+          Unique identifier for the browsing session. Format: "sess_" followed
+          by 12 hexadecimal characters. Groups all events within a single
+          customer browsing session. Used with customer_id to analyze session-level
+          behavior.
+        data_tests:
+          - not_null
+      - name: page_url
+        description: >
+          Full URL of the page the customer interacted with. Can be used to
+          identify high-traffic product pages or drop-off points in the
+          purchase funnel.
+      - name: event_type
+        description: >
+          Type of customer interaction. One of: page_view (customer loaded a page),
+          click (customer clicked an element), add_to_cart (customer added a product
+          to their cart), or purchase (customer completed a transaction).
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['page_view', 'click', 'add_to_cart', 'purchase']
+      - name: event_timestamp
+        description: >
+          UTC timestamp of when this event occurred. Cast to TIMESTAMP_NTZ during
+          staging from the API's ISO 8601 string format. Use for time-series
+          analysis such as peak browsing hours or daily active users.
+        data_tests:
+          - not_null
+      - name: dbt_loaded_at
+        description: >
+          Timestamp recording when dbt last processed and materialized this row.
+          Added during staging as a metadata column. Useful for auditing dbt
+          run timing versus source event timing.

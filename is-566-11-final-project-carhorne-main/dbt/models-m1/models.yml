@@ -1,0 +1,94 @@
+version: 2
+
+models:
+  - name: stg_adventure_db__customers
+    description: >
+      Each row represents one Adventure Works customer from the operational
+      database. Grain: one row per customer_id. This staging model cleans and
+      standardizes raw customer data including name, contact info, and geographic
+      attributes. Primary join target across sales, chat, and web analytics models —
+      join on customer_id to enrich event data with customer context.
+    columns:
+      - name: customer_id
+        description: >
+          Unique identifier for this customer. Primary key. Source:
+          adventure_db.customer_prod_db. Used as a foreign key join target in
+          stg_ecom__sales_orders, stg_real_time__chat_logs, and stg_web_analytics.
+        data_tests:
+          - unique
+          - not_null
+      - name: first_name
+        description: >
+          Customer's first name as recorded in the Adventure Works operational
+          database. Used alongside last_name for display and reporting purposes.
+        data_tests:
+          - not_null
+
+  - name: stg_adventure_db__inventory
+    description: >
+      Each row represents an inventory record for an Adventure Works product.
+      Grain: one row per product inventory entry. Sourced from
+      adventure_db.inventory_prod_db. Use this model to analyze stock levels
+      and identify low-inventory products. Join to stg_adventure_db__products
+      on product_id for product name and category context.
+
+  - name: stg_adventure_db__vendors
+    description: >
+      Each row represents one vendor in the Adventure Works supplier network.
+      Grain: one row per vendor_id. Sourced from adventure_db.vendor_prod_db.
+      Join to stg_adventure_db__product_vendors on vendor_id to see which
+      products each vendor supplies.
+
+  - name: stg_ecom__email_campaigns
+    description: >
+      Each row represents one email marketing campaign interaction event, unioning
+      records from the legacy email_campaign_raw source and the newer email_mktg_raw
+      source. Grain: one row per event_id. Event types include email_opened,
+      email_clicked, add_to_cart, and conversion. Join to
+      stg_adventure_db__customers on customer_id for customer context, or to
+      stg_ecom__sales_orders on order_id to connect campaign touches to purchases.
+    columns:
+      - name: event_id
+        description: >
+          Unique identifier for this campaign interaction event. Primary key.
+          Sourced from the underlying email campaign raw tables.
+        data_tests:
+          - unique
+      - name: event_type
+        description: >
+          Type of email marketing interaction. One of: email_opened (customer
+          opened the email), email_clicked (customer clicked a link), add_to_cart
+          (customer added a product after the email), or conversion (customer
+          completed a purchase attributed to this campaign).
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['email_opened', 'add_to_cart', 'conversion', 'email_clicked']
+      - name: customer_id
+        description: >
+          Identifier of the customer who received or interacted with this campaign.
+          Foreign key to stg_adventure_db__customers.customer_id. Use this join
+          to access customer demographic and geographic attributes.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_adventure_db__customers')
+                field: customer_id
+      - name: order_id
+        description: >
+          Identifier of the sales order associated with this campaign event, if
+          applicable. Foreign key to stg_ecom__sales_orders.sales_order_id.
+          Null for events that did not result in a purchase (e.g. email_opened).
+          Use this join to measure campaign-attributed revenue.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_ecom__sales_orders')
+                field: sales_order_id
+
+  - name: stg_adventure_db__products
+    description: >
+      Each row represents one product in the Adventure Works catalog. Grain:
+      one row per product_id. Sourced from adventure_db.product_prod_db.
+      Join target for sales order line items and web analytics events via
+      product_id. Use to get product name, category, list price, and vendor info.
