@@ -1,0 +1,39 @@
+version: 2
+
+models:
+  - name: int_web_analytics_with_customers
+    description: >
+      Each row represents a single clickstream event from the Adventure Works
+      e-commerce site, enriched with customer demographic and geographic attributes.
+      Grain: one row per event. Built from stg_web_analytics as the base, with a
+      left join to stg_adventure_db__customers on customer_id — events with
+      unmatched customer IDs are retained with null customer fields. Use this model
+      to analyze browsing behavior by region, customer segment, or event type without
+      writing joins. Downstream consumers: Snowsight dashboards and ad-hoc analysis.
+    columns:
+      - name: customer_id
+        description: >
+          Identifier of the customer who triggered this event. Foreign key to
+          stg_adventure_db__customers.customer_id. May not match a known customer
+          if the API generated an out-of-range ID; those rows are kept with null
+          customer attributes.
+        data_tests:
+          - not_null
+      - name: session_id
+        description: >
+          Unique identifier for the browsing session during which this event occurred.
+          Format: "sess_" followed by 12 hexadecimal characters. Multiple events share
+          the same session_id when they occur within a single browsing session.
+        data_tests:
+          - not_null
+      - name: event_type
+        description: >
+          The type of customer interaction that triggered this event. One of:
+          page_view (customer loaded a page), click (customer clicked an element),
+          add_to_cart (customer added a product to their cart), or purchase
+          (customer completed a transaction).
+      - name: event_timestamp
+        description: >
+          UTC timestamp of when this event occurred on the e-commerce site.
+          Sourced from the API field "timestamp", renamed during staging.
+          Use for time-series analysis such as browsing activity by hour or day.

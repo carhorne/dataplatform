@@ -1,0 +1,340 @@
+dbt MCP Demo Output - 2026-04-20T14:59:37.077470
+============================================================
+
+[14:59:30] ============================================================
+[14:59:30] dbt MCP Server Demo
+[14:59:30] ============================================================
+[14:59:30] 
+[14:59:30] Step 1: Connecting to dbt MCP server...
+[14:59:30] Connected successfully!
+[14:59:30] 
+[14:59:30] Step 2: Listing available tools...
+[14:59:30]   - search_product_docs: Search the dbt product documentation at docs.getdbt.com for pages matching a query. Returns matching
+[14:59:30]   - get_product_doc_pages: Retrieve the Markdown content of one or more dbt documentation pages from docs.getdbt.com. Pass a li
+[14:59:30]   - build: The dbt build command will:
+
+- run models
+- test tests
+- snapshot snapshots
+- seed seeds
+
+In DAG ord
+[14:59:30]   - compile: dbt compile generates executable SQL from source model, test, and analysis files.
+
+The compile comma
+[14:59:30]   - docs: The docs command is responsible for generating your project's documentation website.
+
+[14:59:30]   - list: List the resources in the your dbt project.
+
+[14:59:30]   - parse: The dbt parse command parses and validates the contents of your dbt project. If your project contain
+[14:59:30]   - run: dbt run executes compiled sql model files against the current target database. dbt connects to the t
+[14:59:30]   - test: dbt test runs data tests defined on models, sources, snapshots, and seeds and unit tests defined on 
+[14:59:30]   - show: dbt show executes an arbitrary SQL statement against the database and returns the results. It is use
+[14:59:30]   - get_lineage_dev: get_lineage_dev
+
+<instructions>
+Retrieves the lineage of a specific dbt resource from the local deve
+[14:59:30]   - get_node_details_dev: Retrieves detailed information about a specific dbt node from the local development manifest using `
+[14:59:30] 
+[14:59:30] Step 3: Discovering dbt models...
+[14:59:32]   Models found:
+adventure.staging.ecom.base.base_ecom__email_campaigns
+adventure.staging.ecom.base.base_ecom__email_mktg_new
+adventure.staging.ecom.base.base_ecom__sales_orders
+adventure.staging.ecom.base.base_real_time__sales_orders
+adventure.intermediate.int_sales_order_line_items
+adventure.intermediate.int_sales_order_with_customers
+adventure.intermediate.int_sales_orders_with_campaign
+adventure.intermediate.int_web_analytics_with_customers
+adventure.staging.adventure_db.stg_adventure_db__customers
+adventure.staging.adventure_db.stg_adventure_db__inventory
+adventure.staging.adventure_db.stg_adventure_db__product_vendors
+adventure.staging.adventure_db.stg_adventure_db__products
+adventure.staging.adventure_db.stg_adventure_db__vendors
+adventure.staging.ecom.stg_ecom__email_campaigns
+adventure.staging.ecom.stg_ecom__purchase_orders
+adventure.staging.ecom.stg_ecom__sales_orders
+adventure.staging.ecom.stg_real_time__chat_logs
+adventure.staging.web_analytics.stg_web_analytics
+
+[14:59:32] 
+[14:59:32] Step 4: Getting details for stg_web_analytics...
+[14:59:33]   Model details:
+{
+  "unique_id": "model.adventure.stg_web_analytics",
+  "name": "stg_web_analytics",
+  "resource_type": "model",
+  "package_name": "adventure",
+  "original_file_path": "models-m2/staging/web_analytics/stg_web_analytics.sql",
+  "path": "staging/web_analytics/stg_web_analytics.sql",
+  "alias": "stg_web_analytics",
+  "description": "Each row represents a single cleaned and validated clickstream event from the Adventure Works e-commerce site. Grain: one row per event. Built from the raw_ext.web_analytics_raw source table, with type casting, timestamp normalization, null filtering on required fields, and exact duplicate removal. Join to stg_adventure_db__customers on customer_id to enrich events with customer attributes. Used downstream by int_web_analytics_with_customers.\n",
+  "columns": {
+    "customer_id": {
+      "name": "customer_id",
+      "description": "Adventure Works customer identifier. Foreign key to stg_adventure_db__customers.customer_id. Rows with null customer_id are dropped during staging. Values outside the expected range (11000–30118) are kept but will not match the customer dimension.\n",
+      "meta": {},
+      "data_type": null,
+      "constraints": [],
+      "quote": null,
+      "config": {
+        "meta": {},
+        "tags": []
+      },
+      "tags": [],
+      "granularity": null,
+      "doc_blocks": []
+    },
+    "product_id": {
+      "name": "product_id",
+      "description": "Adventure Works product identifier, range 707–999. Foreign key to stg_adventure_db__products.product_id. Represents the product the customer was viewing or interacting with during this event.\n",
+      "meta": {},
+      "data_type": null,
+      "constraints": [],
+      "quote": null,
+      "config": {
+        "meta": {},
+        "tags": []
+      },
+      "tags": [],
+      "granularity": null,
+      "doc_blocks": []
+    },
+    "session_id": {
+      "name": "session_id",
+      "description": "Unique identifier for the browsing session. Format: \"sess_\" followed by 12 hexadecimal characters. Groups all events within a single customer browsing session. Used with customer_id to analyze session-level behavior.\n",
+      "meta": {},
+      "data_type": null,
+      "constraints": [],
+      "quote": null,
+      "config": {
+        "meta": {},
+        "tags": []
+      },
+      "tags": [],
+      "granularity": null,
+      "doc_blocks": []
+    },
+    "page_url": {
+      "name": "page_url",
+      "description": "Full URL of the page the customer interacted with. Can be used to identify high-traffic product pages or drop-off points in the purchase funnel.\n",
+      "meta": {},
+      "data_type": null,
+      "constraints": [],
+      "quote": null,
+      "config": {
+        "meta": {},
+        "tags": []
+      },
+      "tags": [],
+      "granularity": null,
+      "doc_blocks": []
+    },
+    "event_type": {
+      "name": "event_type",
+      "description": "Type of customer interaction. One of: page_view (customer loaded a page), click (customer clicked an element), add_to_cart (customer added a product to their cart), or purchase (customer completed a transaction).\n",
+      "meta": {},
+      "data_type": null,
+      "constraints": [],
+      "quote": null,
+      "config": {
+        "meta": {},
+        "tags": []
+      },
+      "tags": [],
+      "granularity": null,
+      "doc_blocks": []
+    },
+    "event_timestamp": {
+      "name": "event_timestamp",
+      "description": "UTC timestamp of when this event occurred. Cast to TIMESTAMP_NTZ during staging from the API's ISO 8601 string format. Use for time-series analysis such as peak browsing hours or daily active users.\n",
+      "meta": {},
+      "data_type": null,
+      "constraints": [],
+      "quote": null,
+      "config": {
+        "meta": {},
+        "tags": []
+      },
+      "tags": [],
+      "granularity": null,
+      "doc_blocks": []
+    },
+    "dbt_loaded_at": {
+      "name": "dbt_loaded_at",
+      "description": "Timestamp recording when dbt last processed and materialized this row. Added during staging as a metadata column. Useful for auditing dbt run timing versus source event timing.",
+      "meta": {},
+      "data_type": null,
+      "constraints": [],
+      "quote": null,
+      "config": {
+        "meta": {},
+        "tags": []
+      },
+      "tags": [],
+      "granularity": null,
+      "doc_blocks": []
+    }
+  },
+  "meta": {},
+  "tags": [],
+  "config": {
+    "enabled": true,
+    "alias": null,
+    "schema": null,
+    "database": null,
+    "tags": [],
+    "meta": {},
+    "group": null,
+    "materialized": "table",
+    "incremental_strategy": null,
+    "batch_size": null,
+    "lookback": 1,
+    "begin": null,
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "column_types": {},
+    "full_refresh": null,
+    "unique_key": null,
+    "on_schema_change": "ignore",
+    "on_configuration_change": "apply",
+    "grants": {},
+    "packages": [],
+    "docs": {
+      "show": true,
+      "node_color": null
+    },
+    "contract": {
+      "enforced": false,
+      "alias_types": true
+    },
+    "event_time": null,
+    "concurrent_batches": null,
+    "access": "protected",
+    "freshness": null
+  },
+  "depends_on": {
+    "macros": [],
+    "nodes": [
+      "source.adventure.raw_ext.web_analytics_raw"
+    ]
+  },
+  "patch_path": "adventure://models-m2/staging/web_analytics/stg_web_analytics.yml",
+  "schema": "dbt_dev",
+  "database": "FOX_DB",
+  "relation_name": "FOX_DB.dbt_dev.stg_web_analytics",
+  "language": "sql",
+  "docs": {
+    "show": true,
+    "node_color": null
+  },
+  "group": null,
+  "access": "protected",
+  "version": null,
+  "latest_version": null,
+  "deprecation_date": null,
+  "contract": {
+    "enforced": false,
+    "alias_types": true,
+    "checksum": null
+  },
+  "constraints": [],
+  "primary_key": [],
+  "fqn": [
+    "adventure",
+    "staging",
+    "web_analytics",
+    "stg_web_analytics"
+  ],
+  "build_path": null,
+  "refs": [],
+  "sources": [
+    [
+      "raw_ext",
+      "web_analytics_raw"
+    ]
+  ],
+  "metrics": [],
+  "created_at": 1776718410.149683,
+  "unrendered_config": {
+    "materialized": "table"
+  },
+  "tests": [
+    "adventure.staging.web_analytics.accepted_values_stg_web_analytics_event_type__page_view__click__add_to_cart__purchase",
+    "adventure.staging.web_analytics.not_null_stg_web_analytics_customer_id",
+    "adventure.staging.web_analytics.not_null_stg_web_analytics_event_timestamp",
+    "adventure.staging.web_analytics.not_null_stg_web_analytics_event_type",
+    "adventure.staging.web_analytics.not_null_stg_web_analytics_product_id",
+    "adventure.staging.web_analytics.not_null_stg_web_analytics_session_id",
+    "adventure.staging.web_analytics.relationships_stg_web_analytics_customer_id__customer_id__ref_stg_adventure_db__customers_",
+    "adventure.web_analytics_freshness_check",
+    "adventure.web_analytics_row_count_minimum"
+  ]
+}
+[14:59:33] 
+[14:59:33] Step 5: Compiling SQL for int_web_analytics_with_customers...
+[14:59:35]   Compiled SQL:
+OK
+[14:59:35] 
+[14:59:35] Step 6: Exploring lineage for stg_ecom__sales_orders...
+[14:59:37]   Lineage:
+{
+  "model_id": "model.adventure.stg_ecom__sales_orders",
+  "parents": [
+    {
+      "model_id": "model.adventure.base_ecom__sales_orders",
+      "parents": [
+        {
+          "model_id": "source.adventure.ecom_source.sales_order_raw",
+          "parents": []
+        }
+      ]
+    },
+    {
+      "model_id": "model.adventure.base_real_time__sales_orders",
+      "parents": [
+        {
+          "model_id": "source.adventure.raw_ext.order_details_raw",
+          "parents": []
+        },
+        {
+          "model_id": "source.adventure.raw_ext.orders_raw",
+          "parents": []
+        }
+      ]
+    },
+    {
+      "model_id": "seed.adventure.ship_method",
+      "parents": []
+    }
+  ],
+  "children": [
+    {
+      "model_id": "model.adventure.int_sales_order_line_items",
+      "children": []
+    },
+    {
+      "model_id": "model.adventure.int_sales_order_with_customers",
+      "children": []
+    },
+    {
+      "model_id": "model.adventure.int_sales_orders_with_campaign",
+      "children": [
+        {
+          "model_id": "analysis.adventure.campaign_sales_analysis",
+          "children": []
+        }
+      ]
+    },
+    {
+      "model_id": "test.adventure.relationships_stg_ecom__email_campaigns_order_id__sales_order_id__ref_stg_ecom__sales_orders_.f681021adc",
+      "children": []
+    }
+  ]
+}
+[14:59:37] 
+[14:59:37] ============================================================
+[14:59:37] Demo complete!
+[14:59:37] ============================================================

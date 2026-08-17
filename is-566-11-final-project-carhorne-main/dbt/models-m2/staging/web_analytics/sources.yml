@@ -1,0 +1,77 @@
+version: 2
+
+sources:
+  - name: raw_ext
+    database: FOX_DB
+    schema: raw_ext
+    tables:
+      - name: web_analytics_raw
+        description: >
+          Raw clickstream events loaded from the Adventure Works web analytics
+          REST API via the Prefect orchestration flow. Each row represents one
+          customer interaction event on the e-commerce website. Grain: one row
+          per event. Data arrives incrementally using a watermark strategy —
+          each Prefect run fetches only events newer than the last-seen timestamp.
+          This table is the source for stg_web_analytics.
+        config:
+          loaded_at_field: event_timestamp
+          freshness:
+            warn_after: {count: 12, period: hour}
+            error_after: {count: 24, period: hour}
+        columns:
+          - name: customer_id
+            description: >
+              Adventure Works customer identifier, range 11000–30118. Foreign key
+              to stg_adventure_db__customers.customer_id. Values outside this range
+              may appear from the API but will not match the customer dimension;
+              referential integrity is enforced downstream in dbt tests.
+            data_tests:
+              - not_null
+          - name: product_id
+            description: >
+              Adventure Works product identifier, range 707–999. Foreign key to
+              stg_adventure_db__products.product_id. Represents the product the
+              customer was interacting with during this event.
+            data_tests:
+              - not_null
+          - name: session_id
+            description: >
+              Unique browsing session identifier. Format: "sess_" followed by 12
+              hexadecimal characters. Groups all events that occurred within a
+              single customer browsing session.
+            data_tests:
+              - not_null
+          - name: page_url
+            description: >
+              Full URL of the page the customer interacted with during this event.
+              Can be used to identify which product pages, category pages, or
+              checkout steps drive the most engagement.
+          - name: event_type
+            description: >
+              Type of customer interaction. One of: page_view, click,
+              add_to_cart, or purchase. Use accepted_values test to enforce
+              the valid set from the API contract.
+            data_tests:
+              - not_null
+              - accepted_values:
+                  arguments:
+                    values: ['page_view', 'click', 'add_to_cart', 'purchase']
+          - name: event_timestamp
+            description: >
+              UTC timestamp of when the event occurred on the e-commerce site.
+              Renamed from the API field "timestamp" during staging. Used as the
+              loaded_at_field for dbt source freshness checks — if no events
+              newer than 24 hours exist, the freshness check errors.
+            data_tests:
+              - not_null
+          - name: _loaded_at
+            description: >
+              Timestamp when this row was loaded into Snowflake. Populated
+              automatically by Snowflake's DEFAULT CURRENT_TIMESTAMP() — not
+              written by the Prefect flow. Useful for auditing load timing
+              versus event timing.
+          - name: _file_name
+            description: >
+              Name of the staged CSV file this row was loaded from. Populated
+              automatically by Snowflake's COPY INTO metadata column. Useful
+              for tracing a row back to a specific Prefect run's staged file.

@@ -1,0 +1,94 @@
+version: 2
+
+sources:
+  - name: adventure_db
+    description: >
+      Core Adventure Works operational database hosted in Snowflake. Contains
+      customer, product, inventory, and vendor reference data used across
+      all staging and intermediate models.
+    database: is566
+    schema: adventure_prod_db
+    tables:
+      - name: inventory_prod_db
+        description: >
+          Raw inventory snapshot data for Adventure Works products. Each row
+          represents a product's inventory level at a point in time. Source
+          for stg_adventure_db__inventory.
+      - name: customer_prod_db
+        description: >
+          Raw customer records for Adventure Works. Each row is one customer.
+          Source for stg_adventure_db__customers. Join key used across most
+          intermediate models is customer_id.
+      - name: product_vendor_prod_db
+        description: >
+          Raw mapping of Adventure Works products to their vendors. Each row
+          links one product to one vendor. Source for stg_adventure_db__product_vendors.
+      - name: product_prod_db
+        description: >
+          Raw product catalog for Adventure Works. Each row is one product.
+          Source for stg_adventure_db__products. Join to sales models via product_id.
+      - name: vendor_prod_db
+        description: >
+          Raw vendor records for Adventure Works. Each row is one vendor.
+          Source for stg_adventure_db__vendors.
+
+  - name: ecom_source
+    description: >
+      Historical e-commerce marketing and sales data from the legacy marketing
+      schema. Contains email campaigns, purchase orders, and sales orders prior
+      to the real-time generator.
+    database: is566
+    schema: old_mktg
+    tables:
+      - name: email_campaign_raw
+        description: >
+          Raw email marketing campaign event records. Each row is one campaign
+          interaction event (open, click, conversion). Source for
+          stg_ecom__email_campaigns.
+      - name: purchase_order_raw
+        description: >
+          Raw purchase order records from the legacy e-commerce system. Each row
+          is one purchase order. Source for stg_ecom__purchase_orders.
+      - name: sales_order_raw
+        description: >
+          Raw sales order records from the legacy e-commerce system. Each row is
+          one sales order. Source for the base_ecom__sales_orders base model,
+          which feeds stg_ecom__sales_orders.
+
+  - name: new_mktg
+    description: >
+      New marketing schema containing updated email marketing records. Schema
+      is environment-aware — points to new_mktg_dev in dev and new_mktg_prod
+      in production.
+    database: is566
+    schema: "{{ 'new_mktg_dev' if target.name == 'dev' else 'new_mktg_prod' }}"
+    tables:
+      - name: email_mktg_raw
+        description: >
+          Raw email marketing records from the updated marketing system. Each row
+          is one email marketing event. Source for base_ecom__email_mktg_new,
+          which is unioned with email_campaign_raw in stg_ecom__email_campaigns.
+
+  - name: raw_ext
+    description: >
+      External raw data loaded by the Python ETL processor from PostgreSQL and
+      MongoDB sources via Snowflake internal stages. Updated incrementally on
+      each processor cycle using a watermark strategy.
+    database: FOX_DB
+    schema: raw_ext
+    tables:
+      - name: orders_raw
+        description: >
+          Raw sales order headers loaded from the PostgreSQL ecom database by the
+          ETL processor. Each row is one sales order. Source for
+          base_real_time__sales_orders, which feeds stg_ecom__sales_orders.
+      - name: order_details_raw
+        description: >
+          Raw sales order line items loaded from the PostgreSQL ecom database.
+          Each row is one product line item within an order. Joined to orders_raw
+          during staging using ARRAY_AGG to reconstruct the order_details VARIANT
+          column in stg_ecom__sales_orders.
+      - name: chat_logs_raw
+        description: >
+          Raw customer support chat session records loaded from MongoDB by the ETL
+          processor. Each row is one chat session. Source for stg_real_time__chat_logs.
