@@ -93,8 +93,8 @@ Adventure Works operates across three separate systems — a PostgreSQL sales da
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/byu-is-566/is-566-11-final-project-carhorne.git
-cd is-566-11-final-project-carhorne
+git clone https://github.com/carhorne/dataplatform.git
+cd dataplatform
 
 # 2. Configure environment
 cp .env.sample .env
